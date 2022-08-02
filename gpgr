@@ -1,0 +1,180 @@
+#!/bin/bash
+#
+# GPG-Reduce
+#
+command=$1
+
+function help {
+    echo "Usage: gpgr <command> <options>"
+    echo "Supported Commands: "
+    echo -e "    new                                 -- Create a new key pair"
+    echo -e "    encrypt      <filename>             -- Encrypt file to send"
+    echo -e "    decrypt      <filename> <output>    -- Decrypt file from trusted sender with optional output file"
+    echo -e "    import       <filename>             -- Import a trusted user's public key"
+    echo -e "    export       <name>                 -- Export public key of user"
+    echo -e "    fingerprint  <name>                 -- Show fingerprint for user"
+    echo -e "    list                                -- List all stored public keys"
+    echo -e "    list-secret                         -- List all stored secret keys"
+    echo -e "    sign         <filename>             -- Signs the given file"
+    echo -e "    clearsign    <filename>             -- Signs the given file in clear text"
+    echo -e "    verify       <filename>             -- Verifies the signature of the given file"
+    echo -e "    protect      <filename>             -- Password protects and signs a file"
+    echo -e "    open         <filename> <output>    -- Open a protected file"
+}
+
+gpg_encrypt_help() {
+    echo "Usage: gpgr encrypt <receiver> <filename>"
+}
+
+gpg_protect() {
+    filename=$1
+    gpg --sign --symmetric $filename
+}
+
+gpg_sign() {
+    filename=$1
+    gpg --sign $filename
+}
+
+gpg_clearsign() {
+    filename=$1
+    gpg --clearsign $filename
+}
+
+gpg_verify() {
+    filename=$1
+    gpg --decrypt $filename
+}
+
+gpg_new() {
+    gpg --full-generate-key
+}
+
+gpg_list_secret () {
+    gpg --list-secret-keys --keyid-format=long
+}
+
+gpg_encrypt() {
+    filename=$1
+
+    if [ -z "$filename" ]; then
+        echo "Missing filename"
+        gpg_encrypt_help
+        exit 1
+    fi
+
+    gpg --encrypt $filename
+}
+
+gpg_decrypt_help() {
+    echo "Usage: gpgr decrypt <filename>"
+}
+gpg_decrypt() {
+    filename=$1
+    output=$2
+
+    if [ -z "$filename" ]; then
+        echo "Missing filename"
+        gpg_decrypt_help
+        exit 1
+    fi
+
+    if [ -z "$output" ]; then
+        gpg --decrypt $filename
+    else
+        gpg --output $output --decrypt $filename
+    fi
+}
+
+gpg_list() {
+    gpg --list-keys
+}
+
+gpg_import_help() {
+    echo "Usage: gpgr import <filename>"
+}
+
+gpg_import() {
+    filename=$1
+
+    if [ -z "$filename" ]; then
+        echo "Missing filename"
+        gpg_import_help
+        exit 1
+    fi
+
+    gpg --import $filename
+}
+
+gpg_export_help() {
+    echo "Usage: gpgr export <name> <filename>"
+}
+
+gpg_export() {
+    name=$1
+    filename=$2
+
+    if [ -z "$name" ]; then
+        echo "Missing name"
+        gpg_export_help
+        exit 1
+    fi
+
+    if [ -z "$filename" ]; then
+        gpg --export -a "$name"
+    else
+        gpg --export -a "$name" > $filename
+    fi
+}
+
+gpg_fingerprint_help() {
+    echo "Usage: gpgr fingerprint <name>"
+}
+
+gpg_fingerprint() {
+    name=$1
+
+    if [ -z "$name" ]; then
+        echo "Missing name"
+        gpg_fingerprint_help
+        exit 1
+    fi
+
+    gpg --fingerprint "$name"
+}
+
+if [ -z "$command" ]; then
+    echo "Missing command"
+    help
+elif [[ "$command" == "help" ]]; then
+    help
+elif [[ "$command" == "encrypt" ]]; then
+    gpg_encrypt "$2"
+elif [[ "$command" == "decrypt" ]]; then
+    gpg_decrypt "$2" "$3"
+elif [[ "$command" == "import" ]]; then
+    gpg_import "$2"
+elif [[ "$command" == "export" ]]; then
+    gpg_export "$2" "$3"
+elif [[ "$command" == "fingerprint" ]]; then
+    gpg_fingerprint "$2"
+elif [[ "$command" == "list" ]]; then
+    gpg_list
+elif [[ "$command" == "list-secret" ]]; then
+    gpg_list_secret
+elif [[ "$command" == "new" ]]; then
+    gpg_new
+elif [[ "$command" == "sign" ]]; then
+    gpg_sign "$2"
+elif [[ "$command" == "clearsign" ]]; then
+    gpg_clearsign "$2"
+elif [[ "$command" == "verify" ]]; then
+    gpg_verify "$2"
+elif [[ "$command" == "protect" ]]; then
+    gpg_protect "$2"
+elif [[ "$command" == "open" ]]; then
+    gpg_decrypt "$2" "$3"
+else
+    echo "Invalid command"
+    help
+fi
