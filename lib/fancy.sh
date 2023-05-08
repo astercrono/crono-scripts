@@ -31,12 +31,9 @@ function __validate_style {
 }
 
 function __validate_color {
-    echo "$1"
     if [ "${__FANCY_COLORS[$1]}" ]; then
-        echo "valid color"
         return 0
     else
-        echo "invalid color"
         fancy_print -s bold -c red "Invalid Color"
         return 1
     fi
