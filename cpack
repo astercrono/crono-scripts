@@ -4,13 +4,28 @@ source "$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/lib
 
 __CPACK_PATH="$(basename $0)"
 __CPACK_CMDS=("extract" "compress" "help")
-__CPACK_TYPES=("7z" "zip")
+__CPACK_TYPES=("7z" "zip" "gzip" "bzip" "tar" "tgz" "xz" "wim" "rar")
 
+#TODO: Add support for: RAR and ISO
 declare -A __CPACK_CMD_DEF=(
-    ["7z_extract"]="7z;7z x -y FILE"
-    ["7z_compress"]="7z;7z a -y FILE.7z FILE"
-    ["zip_extract"]=""
-    ["zip_compress"]=""
+    ["7z_extract"]="7z;_;7z x -y FILE"
+    ["7z_compress"]="7z;_;7z a -y FILE.7z FILE"
+    ["zip_extract"]="7z;_;7z x -tzip -y FILE"
+    ["zip_compress"]="7z;_;7z a -tzip -y FILE.zip FILE"
+    ["bzip_extract"]="bzip2;_;7z x -tbzip2 -y FILE"
+    ["bzip_compress"]="bzip2;_;7z a -tbzip2 -y FILE.bz2 FILE"
+    ["gzip_extract"]="gzip;_;7z x -tgzip -y FILE"
+    ["gzip_compress"]="gzip;_;7z a -tgzip -y FILE.gz FILE"
+    ["tar_extract"]="tar;_;7z x -ttar -y FILE"
+    ["tar_compress"]="tar;_;7z a -ttar -y FILE.tar FILE"
+    ["tgz_extract"]="tar;7z;tar zxf FILE"
+    ["tgz_compress"]="tar;7z;tar cf - FILE | 7z a -si FILE.tar.gz"
+    ["xz_extract"]="7z;_;7z x -txz -y FILE"
+    ["xz_compress"]="7z;_;7z a -txz -y FILE.xy FILE"
+    ["wim_extract"]="7z;_;7z x -twim -y FILE"
+    ["wim_compress"]="7z;_;7z a -twim -y FILE.wim FILE"
+    ["rar_extract"]="unrar;_;unrar x -y FILE"
+    ["rar_compress"]="rar;_;rar a -y FILE.rar FILE"
 )
 
 __cpack_usage() {
@@ -115,13 +130,23 @@ __cpack_run() {
     # Select file command
     local cmd_def_key="${pack_type}_$cmd"
     local cmd_def="${__CPACK_CMD_DEF[$cmd_def_key]}"
-
-    local def_split=($(echo "$cmd_def" | tr ';' ' '))
-    local def_cmd_exe="${def_split[0]}"
-    local def_cmd="${def_split[@]:1}"
+    local def_split=(${cmd_def//;/ })
+    local def_cmd_exe1="${def_split[0]}"
+    local def_cmd_exe2="${def_split[1]}"
+    local def_cmd="${def_split[@]:2}"
     local def_cmd=(${def_cmd//FILE/$target_path})
 
-    # TODO: Do a command-exists check on def_cmd_exe
+    if ! command -v "$def_cmd_exe1" &> /dev/null; then
+        fancy_print -n -s bold -c red "Missing Program: "
+        echo "$def_cmd_exe1"
+        return 1
+    fi
+
+    if [[ "$def_cmd_exe2" != "_" ]] && ! command -v "$def_cmd_exe2" &> /dev/null; then
+        fancy_print -n -s bold -c red "Missing Program: "
+        echo "$def_cmd_exe2"
+        return 1
+    fi
 
     # Dir Check
     if [ $use_dir = false ]; then
@@ -131,7 +156,7 @@ __cpack_run() {
         fi
 
         fancy_print -n -s bold -c blue "${cmd^}ing" && echo " $target_path"
-        "${def_cmd[@]}"
+        eval "${def_cmd[@]}"
     else
         if [ ! -d "$target_path" ]; then
             fancy_print -s bold -c red "Invalid Directory"
@@ -142,6 +167,8 @@ __cpack_run() {
         #       Spawn each file work in background job
         #       Catch output. Say "queuing up" or something like that
     fi
+
+    return 0
 }
 
 __cpack_run "$@"
