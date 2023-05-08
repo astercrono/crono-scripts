@@ -1,0 +1,147 @@
+#!/usr/bin/env bash
+
+source "$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/lib/configure.sh"
+
+__CPACK_PATH="$(basename $0)"
+__CPACK_CMDS=("extract" "compress" "help")
+__CPACK_TYPES=("7z" "zip")
+
+declare -A __CPACK_CMD_DEF=(
+    ["7z_extract"]="7z;7z x -y FILE"
+    ["7z_compress"]="7z;7z a -y FILE.7z FILE"
+    ["zip_extract"]=""
+    ["zip_compress"]=""
+)
+
+__cpack_usage() {
+    fancy_print -n -s bold -c cyan "Usage: "
+    fancy_print -n -s bold "$__CPACK_PATH "
+    fancy_print -n -s underline "COMMAND" 
+    echo -n " [options] "
+    fancy_print -s underline "TARGET"
+
+    echo ""
+
+    fancy_print -s bold -c green "Options: "
+    echo -n "    -t "
+    fancy_print -s underline "TYPE"
+    echo "        Specify compression type"
+    echo "    -d " 
+    echo -n "        Treat " && fancy_print -n -s underline "TARGET" && echo " as a directory."
+    echo "        Use all applicable files within the directory."
+    echo "    -h "
+    echo "        Print this help message"
+
+    echo ""
+
+    fancy_print -s bold -c green "Commands: "
+    for c in "${__CPACK_CMDS[@]}"; do
+        echo "    $c"
+    done
+
+    echo ""
+
+    fancy_print -s bold -c green "Types: "
+    for c in "${__CPACK_TYPES[@]}"; do
+        echo "    $c"
+    done
+}
+
+__cpack_valid_cmd() {
+    local arg="$1"
+    for c in "${__CPACK_CMDS[@]}"; do
+        [[ "$c" == "$arg" ]] && return 0
+    done
+    return 1
+}
+
+__cpack_valid_type() {
+    local arg="$1"
+    for c in "${__CPACK_TYPES[@]}"; do
+        [[ "$c" == "$arg" ]] && return 0
+    done
+    return 1
+}
+
+__cpack_run() {
+    local cmd="$1"
+    local pack_type=""
+    local use_dir=false
+    
+    if ! __cpack_valid_cmd "$cmd"; then
+        fancy_print -s bold -c red "Invalid Command"
+        __cpack_usage
+        return 1
+    elif [[ "$cmd" == "help" ]]; then
+        __cpack_usage
+        return 0
+    fi
+
+    shift
+
+    # Read Options
+    local OPTIND d
+    while getopts "dt:" opt; do
+        case "$opt" in
+            d)
+                use_dir=true
+                ;;
+            t)
+                pack_type="$OPTARG"
+                ;;
+       esac 
+    done
+    shift $(($OPTIND - 1))
+
+    # Pack Check
+    if [[ "$pack_type" == "" ]]; then
+        fancy_print -s bold -c red "Missing Pack Type"
+        __cpack_usage
+        return 1
+    elif ! __cpack_valid_type "$pack_type"; then
+        fancy_print -s bold -c red "Invalid Pack Type"
+        __cpack_usage
+        return 1
+    fi
+
+    # Path Check
+    local target_path="$1"
+    if [[ "$target_path" == "" ]]; then
+        fancy_print -s bold -c red "Missing Target Path"
+        __cpack_usage
+        return 1
+    fi
+
+    # Select file command
+    local cmd_def_key="${pack_type}_$cmd"
+    local cmd_def="${__CPACK_CMD_DEF[$cmd_def_key]}"
+
+    local def_split=($(echo "$cmd_def" | tr ';' ' '))
+    local def_cmd_exe="${def_split[0]}"
+    local def_cmd="${def_split[@]:1}"
+    local def_cmd=(${def_cmd//FILE/$target_path})
+
+    # TODO: Do a command-exists check on def_cmd_exe
+
+    # Dir Check
+    if [ $use_dir = false ]; then
+        if [ ! -f "$target_path" ]; then
+            fancy_print -s bold -c red "Invalid File"
+            return 1
+        fi
+
+        fancy_print -n -s bold -c blue "${cmd^}ing" && echo " $target_path"
+        "${def_cmd[@]}"
+    else
+        if [ ! -d "$target_path" ]; then
+            fancy_print -s bold -c red "Invalid Directory"
+            return 1
+        fi
+
+        # TODO: Loop through directory. Process all files.
+        #       Spawn each file work in background job
+        #       Catch output. Say "queuing up" or something like that
+    fi
+}
+
+__cpack_run "$@"
