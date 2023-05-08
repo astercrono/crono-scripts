@@ -11,6 +11,7 @@ declare -A __FANCY_COLORS=(
     ["magenta"]=";35"
     ["cyan"]=";36"
     ["gray"]=";37"
+    ["none"]=""
 )
 
 declare -A __FANCY_STYLES=(
@@ -30,9 +31,12 @@ function __validate_style {
 }
 
 function __validate_color {
+    echo "$1"
     if [ "${__FANCY_COLORS[$1]}" ]; then
+        echo "valid color"
         return 0
     else
+        echo "invalid color"
         fancy_print -s bold -c red "Invalid Color"
         return 1
     fi
@@ -72,7 +76,7 @@ fancy_print() {
     while getopts "s:c:nh" opt; do
         case $opt in
             s)  
-                ! __validate_style "$OPTARG" && __fancy_usage && return 1
+                # ! __validate_style "$OPTARG" && __fancy_usage && return 1
                 style="$OPTARG"
                 ;;
             c)  
@@ -98,7 +102,8 @@ fancy_print() {
         __fancy_usage
         return 1
     fi
-    [[ "$style" == "" ]] && style=0
+    [[ "$style" == "" ]] && style="normal"
+    [[ "$color" == "" ]] && color="none"
 
     local style_code="${__FANCY_STYLES[$style]}"
     local color_code="${__FANCY_COLORS[$color]}"
