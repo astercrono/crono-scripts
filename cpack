@@ -8,26 +8,27 @@ __CPACK_TYPES=("7z" "zip" "gzip" "bzip" "tar" "tgz" "xz" "wim" "rar")
 
 #TODO: Add support for: RAR and ISO
 declare -A __CPACK_CMD_DEF=(
-    ["7z_extract"]="7z;_;7z x -y FILE"
-    ["7z_compress"]="7z;_;7z a -y OUT.7z FILE"
-    ["zip_extract"]="7z;_;7z x -tzip -y FILE"
-    ["zip_compress"]="7z;_;7z a -tzip -y OUT.zip FILE"
-    ["bzip_extract"]="bzip2;_;7z x -tbzip2 -y FILE"
-    ["bzip_compress"]="bzip2;_;7z a -tbzip2 -y OUT.bz2 FILE"
-    ["gzip_extract"]="gzip;_;7z x -tgzip -y FILE"
-    ["gzip_compress"]="gzip;_;7z a -tgzip -y OUT.gz FILE"
-    ["tar_extract"]="tar;_;7z x -ttar -y FILE"
-    ["tar_compress"]="tar;_;7z a -ttar -y OUT.tar FILE"
-    ["tgz_extract"]="tar;_;tar zxf FILE"
-    ["tgz_compress"]="tar;7z;tar cf - FILE | 7z a -si OUT.tar.gz"
-    ["xz_extract"]="7z;_;7z x -txz -y FILE"
-    ["xz_compress"]="7z;_;7z a -txz -y OUT.xy FILE"
-    ["wim_extract"]="7z;_;7z x -twim -y FILE"
-    ["wim_compress"]="7z;_;7z a -twim -y OUT.wim FILE"
-    ["rar_extract"]="unrar;_;unrar x -y FILE"
-    ["rar_compress"]="rar;_;rar a -y OUT.rar FILE"
+    ["7z_extract"]="7z;_;7z x -y \"FILE\""
+    ["7z_compress"]="7z;_;7z a -y \"OUT\".7z \"FILE\""
+    ["zip_extract"]="7z;_;7z x -tzip -y \"FILE\""
+    ["zip_compress"]="7z;_;7z a -tzip -y \"OUT\".zip \"FILE\""
+    ["bzip_extract"]="bzip2;_;7z x -tbzip2 -y \"FILE\""
+    ["bzip_compress"]="bzip2;_;7z a -tbzip2 -y \"OUT\".bz2 \"FILE\""
+    ["gzip_extract"]="gzip;_;7z x -tgzip -y \"FILE\""
+    ["gzip_compress"]="gzip;_;7z a -tgzip -y \"OUT\".gz \"FILE\""
+    ["tar_extract"]="tar;_;7z x -ttar -y \"FILE\""
+    ["tar_compress"]="tar;_;7z a -ttar -y \"OUT\".tar \"FILE\""
+    ["tgz_extract"]="tar;_;tar zxf \"FILE\""
+    ["tgz_compress"]="tar;7z;tar cf - \"FILE\" | 7z a -si \"OUT\".tar.gz"
+    ["xz_extract"]="7z;_;7z x -txz -y \"FILE\""
+    ["xz_compress"]="7z;_;7z a -txz -y \"OUT\".xy \"FILE\""
+    ["wim_extract"]="7z;_;7z x -twim -y \"FILE\""
+    ["wim_compress"]="7z;_;7z a -twim -y \"OUT\".wim \"FILE\""
+    ["rar_extract"]="unrar;_;unrar x -y \"FILE\""
+    ["rar_compress"]="rar;_;rar a -y \"OUT\".rar \"FILE\""
 )
 
+# TODO: Update usage for argument changes
 __cpack_usage() {
     fancy_print -n -s bold -c cyan "Usage: "
     fancy_print -n -s bold "$__CPACK_PATH "
@@ -197,12 +198,17 @@ __cpack_run() {
         echo "$ogpath"
 
         cmd_final=${def_cmd//FILE/$p}
-        cmd_final=${cmd_final//$space_encode/\\ }
+        cmd_final=${cmd_final//$space_encode/\ }
 
         # We have to do the first evaluation in the foreground to ensure that the package is first created.
         # After the package is created, we can subjob in bg to append
-        [ $on_first ] && eval "${cmd_final[@]}" &>/dev/null && on_first=false
-        [ ! $on_first ] && eval "${cmd_final[@]}" &>/dev/null &
+        # Extract can go hog wild, though.
+        if [[ "$cmd" == "compress" ]]; then
+            [ ! $on_first ] && eval "${cmd_final[@]}" &>/dev/null &
+            [ $on_first ] && eval "${cmd_final[@]}" &>/dev/null && on_first=false
+        else
+            eval "${cmd_final[@]}" &>/dev/null &
+        fi
 
         total_acted=$((total_acted+1))
     done
