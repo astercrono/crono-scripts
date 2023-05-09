@@ -6,7 +6,6 @@ __CPACK_PATH="$(basename $0)"
 __CPACK_CMDS=("extract" "compress" "help")
 __CPACK_TYPES=("7z" "zip" "gzip" "bzip" "tar" "tgz" "xz" "wim" "rar")
 
-#TODO: Add support for: RAR and ISO
 declare -A __CPACK_CMD_DEF=(
     ["7z_extract"]="7z;_;7z x -y \"FILE\""
     ["7z_compress"]="7z;_;7z a -y \"OUT\".7z \"FILE\""
@@ -28,7 +27,6 @@ declare -A __CPACK_CMD_DEF=(
     ["rar_compress"]="rar;_;rar a -y \"OUT\".rar \"FILE\""
 )
 
-# TODO: Update usage for argument changes
 __cpack_usage() {
     fancy_print -n -s bold -c cyan "Usage: "
     fancy_print -n -s bold "$__CPACK_PATH "
@@ -39,14 +37,19 @@ __cpack_usage() {
     echo ""
 
     fancy_print -s bold -c green "Options: "
+
     echo -n "    -t "
     fancy_print -s underline "TYPE"
-    echo "        Specify compression type"
-    echo "    -d " 
-    echo -n "        Treat " && fancy_print -n -s underline "TARGET" && echo " as a directory."
+    echo "        Specify compression type."
     echo "        Use all applicable files within the directory."
-    echo "    -h "
-    echo "        Print this help message"
+
+    echo -n "    -o "
+    fancy_print -s underline "PATH"
+    echo "        Specify output file basename when compressing."
+
+    echo "    -i "
+    echo "        Run in test mode. Inspect the output."
+    echo "        No real actions are performed."
 
     echo ""
 
@@ -79,12 +82,12 @@ __cpack_valid_type() {
     return 1
 }
 
-# TODO: Support -t flag for "test mode"
 __cpack_run() {
     local space_encode="$%$"
     local cmd="$1"
     local pack_type=""
     local output_name=""
+    local test_mode=false
     
     if ! __cpack_valid_cmd "$cmd"; then
         fancy_print -s bold -c red "Invalid Command"
@@ -98,15 +101,18 @@ __cpack_run() {
     shift
 
     # Read Options
-    local OPTIND t o
-    while getopts "t:o:" opt; do
+    local OPTIND t o i
+    while getopts "t:o:i" opt; do
         case "$opt" in
             t)
                 pack_type="$OPTARG"
                 ;;
             o)
                 output_name="$OPTARG"
-                ;;           
+                ;;
+            i)
+                test_mode=true      
+                ;;
        esac 
     done
     shift $(($OPTIND - 1))
@@ -182,6 +188,8 @@ __cpack_run() {
     fancy_print -s bold -c cyan "Begin @ $start_time"
     echo ""
 
+    $test_mode && fancy_print -s bold -c yellow "Running in test mode"
+
     for p in "${targets[@]}"; do
         ogpath="${p//$space_encode/\ }"
 
@@ -199,6 +207,8 @@ __cpack_run() {
 
         cmd_final=${def_cmd//FILE/$p}
         cmd_final=${cmd_final//$space_encode/\ }
+
+        $test_mode && continue
 
         # We have to do the first evaluation in the foreground to ensure that the package is first created.
         # After the package is created, we can subjob in bg to append
@@ -221,7 +231,7 @@ __cpack_run() {
     echo ""
     fancy_print -s bold "Files Processed: $total_acted"
 
-    local dur_secs=$(($end_secs - $start_secs))
+    local dur_secs=$(bc <<< "scale=0; $end_secs - $start_secs")
 
     if [ "$dur_secs" -gt 60 ]; then
         local dur_mins=$(bc <<< "scale=2; ($dur_secs)/60")
