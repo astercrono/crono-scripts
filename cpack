@@ -9,23 +9,23 @@ __CPACK_TYPES=("7z" "zip" "gzip" "bzip" "tar" "tgz" "xz" "wim" "rar")
 #TODO: Add support for: RAR and ISO
 declare -A __CPACK_CMD_DEF=(
     ["7z_extract"]="7z;_;7z x -y FILE"
-    ["7z_compress"]="7z;_;7z a -y FILE.7z FILE"
+    ["7z_compress"]="7z;_;7z a -y OUT.7z FILE"
     ["zip_extract"]="7z;_;7z x -tzip -y FILE"
-    ["zip_compress"]="7z;_;7z a -tzip -y FILE.zip FILE"
+    ["zip_compress"]="7z;_;7z a -tzip -y OUT.zip FILE"
     ["bzip_extract"]="bzip2;_;7z x -tbzip2 -y FILE"
-    ["bzip_compress"]="bzip2;_;7z a -tbzip2 -y FILE.bz2 FILE"
+    ["bzip_compress"]="bzip2;_;7z a -tbzip2 -y OUT.bz2 FILE"
     ["gzip_extract"]="gzip;_;7z x -tgzip -y FILE"
-    ["gzip_compress"]="gzip;_;7z a -tgzip -y FILE.gz FILE"
+    ["gzip_compress"]="gzip;_;7z a -tgzip -y OUT.gz FILE"
     ["tar_extract"]="tar;_;7z x -ttar -y FILE"
-    ["tar_compress"]="tar;_;7z a -ttar -y FILE.tar FILE"
-    ["tgz_extract"]="tar;7z;tar zxf FILE"
-    ["tgz_compress"]="tar;7z;tar cf - FILE | 7z a -si FILE.tar.gz"
+    ["tar_compress"]="tar;_;7z a -ttar -y OUT.tar FILE"
+    ["tgz_extract"]="tar;_;tar zxf FILE"
+    ["tgz_compress"]="tar;7z;tar cf - FILE | 7z a -si OUT.tar.gz"
     ["xz_extract"]="7z;_;7z x -txz -y FILE"
-    ["xz_compress"]="7z;_;7z a -txz -y FILE.xy FILE"
+    ["xz_compress"]="7z;_;7z a -txz -y OUT.xy FILE"
     ["wim_extract"]="7z;_;7z x -twim -y FILE"
-    ["wim_compress"]="7z;_;7z a -twim -y FILE.wim FILE"
+    ["wim_compress"]="7z;_;7z a -twim -y OUT.wim FILE"
     ["rar_extract"]="unrar;_;unrar x -y FILE"
-    ["rar_compress"]="rar;_;rar a -y FILE.rar FILE"
+    ["rar_compress"]="rar;_;rar a -y OUT.rar FILE"
 )
 
 __cpack_usage() {
@@ -33,7 +33,7 @@ __cpack_usage() {
     fancy_print -n -s bold "$__CPACK_PATH "
     fancy_print -n -s underline "COMMAND" 
     echo -n " [options] "
-    fancy_print -s underline "TARGET"
+    fancy_print -s underline "TARGET(S)"
 
     echo ""
 
@@ -79,9 +79,10 @@ __cpack_valid_type() {
 }
 
 __cpack_run() {
+    local space_encode="$%$"
     local cmd="$1"
     local pack_type=""
-    local use_dir=false
+    local output_name=""
     
     if ! __cpack_valid_cmd "$cmd"; then
         fancy_print -s bold -c red "Invalid Command"
@@ -95,15 +96,15 @@ __cpack_run() {
     shift
 
     # Read Options
-    local OPTIND d
-    while getopts "dt:" opt; do
+    local OPTIND t o
+    while getopts "t:o:" opt; do
         case "$opt" in
-            d)
-                use_dir=true
-                ;;
             t)
                 pack_type="$OPTARG"
                 ;;
+            o)
+                output_name="$OPTARG"
+                ;;           
        esac 
     done
     shift $(($OPTIND - 1))
@@ -119,12 +120,33 @@ __cpack_run() {
         return 1
     fi
 
-    # Path Check
-    local target_path="$1"
-    if [[ "$target_path" == "" ]]; then
-        fancy_print -s bold -c red "Missing Target Path"
+    # Target Cleaning
+    local targets=()
+    local clean_path=""
+    OIFS="$IFS"
+    IFS=$(echo -en "\n\b")
+    for p in $@; do
+        clean_path=$(echo "$p" | sed "s| |$space_encode|g")
+        targets+=("$clean_path")
+    done
+    IFS="$OIFS"
+
+    if [[ "${#targets[@]}" == "0" ]]; then
+        fancy_print -s bold -c red "Missing Target(s)"
         __cpack_usage
         return 1
+    fi
+
+    # Opt Check
+    # -o is not compatible with extract
+    if [[ "$cmd" == "extract" && "$output_name" != "" ]]; then
+        fancy_print -s bold -c red "Invalid argument -o for extract"
+        return 1
+    fi
+    # Default output name to first file name
+    if [[ "$output_name" == "" ]]; then
+        output_name="${targets[0]}"
+        output_name="${output_name//$space_encode/\ }"
     fi
 
     # Select file command
@@ -134,40 +156,50 @@ __cpack_run() {
     local def_cmd_exe1="${def_split[0]}"
     local def_cmd_exe2="${def_split[1]}"
     local def_cmd="${def_split[@]:2}"
-    local def_cmd=(${def_cmd//FILE/$target_path})
+    def_cmd="${def_cmd//OUT/$output_name}"
 
+    # Command Checks
     if ! command -v "$def_cmd_exe1" &> /dev/null; then
         fancy_print -n -s bold -c red "Missing Program: "
         echo "$def_cmd_exe1"
         return 1
     fi
-
     if [[ "$def_cmd_exe2" != "_" ]] && ! command -v "$def_cmd_exe2" &> /dev/null; then
         fancy_print -n -s bold -c red "Missing Program: "
         echo "$def_cmd_exe2"
         return 1
     fi
 
-    # Dir Check
-    if [ $use_dir = false ]; then
-        if [ ! -f "$target_path" ]; then
-            fancy_print -s bold -c red "Invalid File"
-            return 1
+    # Let's get to work
+    local on_first=true
+    local file_type="file"
+    for p in "${targets[@]}"; do
+        ogpath="${p//$space_encode/\ }"
+
+        if [ ! -d "$ogpath" ] && [ ! -f "$ogpath" ]; then
+            fancy_print -n -s bold -c yellow "Invalid Path: " && echo "$p"
+            continue
         fi
 
-        fancy_print -n -s bold -c blue "${cmd^}ing" && echo " $target_path"
-        eval "${def_cmd[@]}"
-    else
-        if [ ! -d "$target_path" ]; then
-            fancy_print -s bold -c red "Invalid Directory"
-            return 1
-        fi
+        [ -d "$ogpath" ] && file_type="dir"
 
-        # TODO: Loop through directory. Process all files.
-        #       Spawn each file work in background job
-        #       Catch output. Say "queuing up" or something like that
-    fi
+        fancy_print -n -s bold "[$pack_type] "
+        fancy_print -n -s bold -c blue "${cmd^}ing"
+        fancy_print -n -s bold " ($file_type) "
+        echo "$ogpath"
 
+        cmd_final=${def_cmd//FILE/$p}
+        cmd_final=${cmd_final//$space_encode/\\ }
+
+        # We have to do the first evaluation in the foreground to ensure that the package is first created.
+        # After the package is created, we can subjob in bg to append
+        [ $on_first ] && eval "${cmd_final[@]}" &>/dev/null && on_first=false
+        [ ! $on_first ] && eval "${cmd_final[@]}" &>/dev/null &
+    done
+
+    wait
+
+    fancy_print -s bold -c green "DONE"
     return 0
 }
 
