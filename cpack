@@ -78,6 +78,7 @@ __cpack_valid_type() {
     return 1
 }
 
+# TODO: Support -t flag for "test mode"
 __cpack_run() {
     local space_encode="$%$"
     local cmd="$1"
@@ -173,6 +174,13 @@ __cpack_run() {
     # Let's get to work
     local on_first=true
     local file_type="file"
+    local start_time="$(date +"%D %I:%M %p")"
+    local start_secs="$(date +%S)"
+    local total_acted="0"
+
+    fancy_print -s bold -c cyan "Begin @ $start_time"
+    echo ""
+
     for p in "${targets[@]}"; do
         ogpath="${p//$space_encode/\ }"
 
@@ -195,12 +203,37 @@ __cpack_run() {
         # After the package is created, we can subjob in bg to append
         [ $on_first ] && eval "${cmd_final[@]}" &>/dev/null && on_first=false
         [ ! $on_first ] && eval "${cmd_final[@]}" &>/dev/null &
+
+        total_acted=$((total_acted+1))
     done
 
     wait
 
-    fancy_print -s bold -c green "DONE"
+    local end_time="$(date +"%D %I:%M %p")"
+    local end_secs="$(date +%S)"
+
+    echo ""
+    fancy_print -s bold "Files Processed: $total_acted"
+
+    local dur_secs=$(($end_secs - $start_secs))
+
+    if [ "$dur_secs" -gt 60 ]; then
+        local dur_mins=$(bc <<< "scale=2; ($dur_secs)/60")
+        fancy_print -s bold "Duration: ${dur_mins}m"
+    else 
+        fancy_print -s bold "Duration: ${dur_secs}s"
+    fi
+
+    echo ""
+    fancy_print -s bold -c green "Done @ $end_time"
+
     return 0
 }
+
+if ! command -v "bc" &> /dev/null; then
+    fancy_print -n -s bold -c red "Missing Program: "
+    echo "bc"
+    exit 1
+fi
 
 __cpack_run "$@"
