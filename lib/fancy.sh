@@ -63,17 +63,15 @@ __fancy_usage() {
 }
 
 fancy_print() {
-    local help_suffix=""
     local style=""
     local color=""
     local value=""
     local newline="\n"
 
-    local OPTIND s c
+    local OPTIND s c n h
     while getopts "s:c:nh" opt; do
         case $opt in
             s)  
-                # ! __validate_style "$OPTARG" && __fancy_usage && return 1
                 style="$OPTARG"
                 ;;
             c)  
