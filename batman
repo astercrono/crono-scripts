@@ -59,10 +59,11 @@ batman_banner
 
 if $plaintext; then
     run_tests | unfancy
+    bat_summary | unfancy
 else
     run_tests
+    bat_summary
 fi
 
-bat_summary
 
 exit $BAT_STATUS
