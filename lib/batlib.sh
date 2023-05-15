@@ -15,6 +15,43 @@ TEST_INDENT=""
 CASE_INDENT="    "
 SUMMARY_INDENT="    "
 
+RUN_PATHS=()
+
+bat_banner() {
+    cat "$CSCRIPT_LIB/batman_banner.txt"
+    echo ""
+    echo ""
+}
+
+# This is not a very good attempt at confirming that the file in question
+# contains the minimum number of function calls that all tests suites 
+# should have.
+# TODO: Revisit this.
+bat_valid_test() {
+    local path="$@"
+    local status=0
+    grep -qE "run_test .* .*" "$path"; status=$((status + $?))
+    grep -qE "case_pass$" "$path"; status=$((status + $?))
+
+    return $status
+}
+
+bat_run_tests() {
+    for encoded_path in "${RUN_PATHS[@]}"; do
+        pushd . &>/dev/null
+        [[ ! "$encoded_path" == *"_test.sh" ]] && continue
+
+        local path="${encoded_path/$CSCRIPT_SPACE_ENCODE/\ }"
+
+        if ! bat_valid_test "$path"; then continue; fi
+
+        start_suite "$path"
+        . "$path"
+        end_suite
+        popd &>/dev/null
+    done
+}
+
 print_divider() {
     echo "__________________________________________________"
 }
