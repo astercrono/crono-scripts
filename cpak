@@ -1,0 +1,305 @@
+#!/usr/bin/env bash
+
+source "$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/lib/configure.sh"
+source "$CSCRIPT_LIB/cpak_util.sh"
+source "$CSCRIPT_LIB/cpak_methods.sh"
+
+__CPAK_PATH="$(basename $0)"
+__CPAK_CMDS=("u;Unpack (decompress and unarchive) files" "p;Pack (archive and compress) files " "h;Print this help message")
+
+# Method_Action (by extension) => Pack Function; Unpack Function; Required Command 1; Required Command 2; Description
+declare -A __CPAK_CMD_MAP=(
+    ["7z"]="7z_pack;7z_unpack;7z;_;7z Compressed Archive"
+    ["zip"]="zip_pack;zip_unpack;7z;_;Zip Compressed Archive" 
+    ["bz2"]="bzip_pack;bzip_unpack;bzip2;pbzip2;BZip2 Compression (Single File)" # update to only use bzip
+    ["gz"]="gzip_pack;gzip_unpack;gzip;pigz;GZip Compression (Single File)"
+    ["tar"]="tar_pack;tar_unpack;tar;_;Tarball Archive"
+    ["tar.bz2"]="tar.bz2_pack;tar.bz2_unpack;tar;pbzip2;BZip2 Compressed Tarball"
+    ["tar.gz"]="tar.gz_pack;tar.gz_unpack;tar;pigz;GZip Compressed Tarball"
+    ["xz"]="xz_pack;xz_unpack;7z;_;XZ Compression (Single File)"
+    ["tar.xz"]="tar.xz_pack;tar.xz_unpack;tar;xz;XZ Compressed Tarball"
+    ["rar"]="rar_pack;rar_unpack;rar;unrar;Rar Compressed Archive"
+)
+
+__cpak_usage() {
+    fancy_print -n -s bold -c cyan "Usage: "
+    fancy_print -n -s bold "$__CPAK_PATH "
+    fancy_print -n -s underline "COMMAND" 
+    echo -n " [options] "
+    fancy_print -s underline "TARGET(S)"
+
+    echo ""
+
+    fancy_print -s bold -c green "Commands: "
+    for val in "${__CPAK_CMDS[@]}"; do
+        local split=(${val//;/ })
+        local method_cmd="${split[0]}"
+        local description="${split[@]:1}"
+
+        echo "    ${method_cmd})  $description"
+    done | sort
+
+    echo ""
+
+    fancy_print -s bold -c green "Options: "
+
+    echo "    -i "
+    echo "        Run in test mode. Inspect the output."
+    echo "        No real actions are performed."
+
+    echo "    -s "
+    echo "        Sequential mode. For unpacking only."
+    echo "        Disables subjobbing for batch processing"
+
+    echo -n "    -o "
+    fancy_print -s underline "PATH"
+    echo "        Packing: Output file basename when packing." 
+    echo "        Unpacking: Directory to unpack into"
+
+    echo -n "    -t "
+    fancy_print -s underline "TYPE"
+    echo "        Specify pion type."
+    echo "        Use all applicable files within the directory."
+
+    echo "    -v "
+    echo "        Run in verbose mode"
+    echo ""
+
+    fancy_print -s bold -c blue "Supported Types: "
+    for key in "${!__CPAK_CMD_MAP[@]}"; do
+        local value=${__CPAK_CMD_MAP[$key]}
+        local split=(${value//;/ })
+        local description="${split[@]:4}"
+
+        local key_length=${#key}
+        local tab_width="16"
+        local calc_tab_width=$((tab_width - key_length))
+
+        local key_s=$(echo -n "$key")
+        local spacing=$(printf "%${calc_tab_width}s")
+        local desc_s=$(echo "-- $description")
+
+        echo -n "    $key" && printf "%${calc_tab_width}s" && echo "$description"
+    done | sort
+}
+
+__cpak_valid_cmd() {
+    local arg="$1"
+    for c in "${__CPAK_CMDS[@]}"; do
+        split=(${c//;/ })
+        cmd="${split[0]}"
+        [[ "$cmd" == "$arg" ]] && return 0
+    done
+    return 1
+}
+
+__cpak_valid_type() {
+    local arg="$1"
+    for c in "${!__CPAK_CMD_MAP[@]}"; do
+        [[ "$c" == "$arg" ]] && return 0
+    done
+    return 1
+}
+
+__cpak_run() {
+    local cmd="$1"
+    local pack_type=""
+    local output_name=""
+    local test_mode=false
+    local verbose=false
+    local sequential=false
+
+    if ! __cpak_valid_cmd "$cmd"; then
+        fancy_print -s bold -c red "Invalid Command"
+        __cpak_usage
+        return 1
+    elif [[ "$cmd" == "h" ]]; then
+        __cpak_usage
+        return 0
+    fi
+
+    shift
+
+    # Read Options
+    local OPTIND t o i v s
+    while getopts "t:o:ivn" opt; do
+        case "$opt" in
+            t)
+                pack_type="$OPTARG"
+                ;;
+            o)
+                output_name="$OPTARG"
+                ;;
+            i)
+                test_mode=true      
+                ;;
+            v)
+                verbose=true
+                ;;
+            s)
+                sequential=true
+                ;;
+       esac 
+    done
+    shift $(($OPTIND - 1))
+
+    # Pack Type Check
+    if [[ "$cmd" == "p" ]]; then
+        if [[ "$pack_type" == "" ]]; then
+            fancy_print -s bold -c red "Missing pack type"
+            __cpak_usage
+            return 1
+        elif ! __cpak_valid_type "$pack_type"; then
+            fancy_print -s bold -c red "Invalid pack type"
+            __cpak_usage
+            return 1
+        fi
+    fi
+
+    # Target Cleaning
+    local targets=()
+    local clean_path=""
+    OIFS="$IFS"
+    IFS=$(echo -en "\n\b")
+    for p in $@; do
+        clean_path=$(echo "$p" | sed "s| |$CSCRIPT_SPACE_ENCODE|g")
+        targets+=("$clean_path")
+    done
+    IFS="$OIFS"
+
+    if [[ "${#targets[@]}" == "0" ]]; then
+        fancy_print -s bold -c red "Missing Target(s)"
+        __cpak_usage
+        return 1
+    fi
+
+    # Opt Check
+    # -o is not compatible with u
+    if [[ "$cmd" == "u" ]] && [ -f "$output_name" ]; then
+        fancy_print -n -s bold -c red "Invalid argument -o "
+        echo "(Output destination already exists and is a file. Must be directory.)"
+        return 1
+    fi
+
+    [[ "$cmd" == "u" ]] && [ ! -d "$output_name" ] && mkdir -p "$output_name"
+
+    # Default output name to first file name
+    if [[ "$output_name" == "" ]]; then
+        output_name="${targets[@]}"
+    fi
+
+    # Let's get to work
+    local file_type="file"
+    local start_time="$(date +"%D %I:%M %p")"
+    local total_acted="0"
+    SECONDS=0
+
+    fancy_print -s bold -c cyan "Begin @ $start_time"
+    echo ""
+
+    $test_mode && fancy_print -s bold -c yellow "Running in test mode"
+
+    for p in "${targets[@]}"; do
+        ogpath="${p//$CSCRIPT_SPACE_ENCODE/\ }"
+
+        if [[ "$pack_type" == "" ]]; then
+            local extension="$(match_file_ext $p)"
+            echo "$p --> $extension"
+            pack_type="$extension"
+
+            if [[ "$pack_type" == "" ]]; then
+                fancy_print -n -s bold -c red "Unable to determine pack type: "
+                echo "$ogpath"
+                return 1
+            fi
+        fi
+
+        echo "pack_type=$pack_type"
+
+        local cmd_def="${__CPAK_CMD_MAP[$pack_type]}"
+        local def_split=(${cmd_def//;/ })
+        local pack_func="${def_split[0]}"
+        local unpack_func="${def_split[1]}"
+        local def_cmd_exe1="${def_split[2]}"
+        local def_cmd_exe2="${def_split[3]}"
+
+        local packer_func="$pack_func"
+        [ "$cmd" == "u" ] && packer_func="$unpack_func"
+
+        # Command Checks
+        if ! command -v "$def_cmd_exe1" &> /dev/null; then
+            fancy_print -n -s bold -c red "Missing Program: "
+            echo "$def_cmd_exe1"
+            return 1
+        fi
+        if [[ "$def_cmd_exe2" != "_" ]] && ! command -v "$def_cmd_exe2" &> /dev/null; then
+            fancy_print -n -s bold -c red "Missing Program: "
+            echo "$def_cmd_exe2"
+            return 1
+        fi
+
+
+        if [ ! -d "$ogpath" ] && [ ! -f "$ogpath" ]; then
+            fancy_print -n -s bold -c yellow "Invalid Path: " && echo "$p"
+            continue
+        fi
+
+        [ -d "$ogpath" ] && file_type="dir"
+
+        local action="Packing"
+        [[ "${cmd}" == "u" ]] && action="Unpacking"
+
+        fancy_print -n -s bold "[$pack_type] "
+        fancy_print -n -s bold -c blue "$action"
+        fancy_print -n -s bold " ($file_type) "
+        echo "$ogpath"
+
+        $test_mode && continue
+
+        if [[ "$action" == "Packing" ]]; then
+            $verbose && $packer_func "$p" "$output_name" 
+            ! $verbose && $packer_func "$p" "$output_name" &>/dev/null
+        else
+            if [ $verbose = true ]; then
+                $sequential && $packer_func "$p" "$output_name"
+                ! $sequential && $packer_func "$p" "$output_name" &
+            else
+                $sequential && $packer_func "$p" "$output_name" &>/dev/null
+                ! $sequential && $packer_func "$p" "$output_name" &>/dev/null &
+            fi
+        fi
+
+        total_acted=$((total_acted+1))
+    done
+
+    wait
+
+    [[ $(type -t ${packer_func}_post) == function ]] && "${packer_func}_post" "$output_name"
+
+    local end_time="$(date +"%D %I:%M %p")"
+
+    echo ""
+    fancy_print -s bold "Files Processed: $total_acted"
+
+    local dur_secs=$SECONDS
+
+    if [ "$dur_secs" -gt 60 ]; then
+        local dur_mins=$(bc <<< "scale=2; ($dur_secs)/60")
+        fancy_print -s bold "Duration: ${dur_mins}m"
+    else 
+        fancy_print -s bold "Duration: ${dur_secs}s"
+    fi
+
+    echo ""
+    fancy_print -s bold -c green "Done @ $end_time"
+
+    return 0
+}
+
+if ! command -v "bc" &> /dev/null; then
+    fancy_print -n -s bold -c red "Missing Program: "
+    echo "bc"
+    exit 1
+fi
+
+__cpak_run "$@"

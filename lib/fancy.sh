@@ -21,7 +21,7 @@ declare -A __FANCY_STYLES=(
     ["reverse"]="7"
 )
 
-function __validate_style {
+__validate_style() {
     if [ "${__FANCY_STYLES[$1]}" ]; then
         return 0
     else
@@ -30,7 +30,7 @@ function __validate_style {
     fi
 }
 
-function __validate_color {
+__validate_color() {
     if [ "${__FANCY_COLORS[$1]}" ]; then
         return 0
     else
@@ -104,4 +104,8 @@ fancy_print() {
     local color_code="${__FANCY_COLORS[$color]}"
 
     printf "\e[${style_code}${color_code}m${value}\e[0m${newline}"
+}
+
+unfancy() {
+    sed -e 's/\x1b\[[0-9;]*m//g'
 }
