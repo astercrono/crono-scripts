@@ -6,6 +6,12 @@ plaintext=false
 
 run_paths=()
 
+batman_banner() {
+    cat "$CSCRIPT_LIB/batman_banner.txt"
+    echo ""
+    echo ""
+}
+
 # This is not a very good attempt at confirming that the file in question
 # contains the minimum number of function calls that all tests suites 
 # should have.
@@ -13,25 +19,25 @@ run_paths=()
 valid_test_file() {
     local path="$@"
     local status=0
-
-    grep -qE "start_suite .*" "$path"; status=$((status + $?))
-    grep -qE "end_suite" "$path" ; status=$((status + $?))
     grep -qE "run_test .* .*" "$path"; status=$((status + $?))
-    grep -qE "case_pass .*" "$path"; status=$((status + $?))
+    grep -qE "case_pass$" "$path"; status=$((status + $?))
 
     return $status
 }
 
 run_tests() {
     for encoded_path in "${run_paths[@]}"; do
+        pushd . &>/dev/null
         [[ ! "$encoded_path" == *"_test.sh" ]] && continue
 
         local path="${encoded_path/$CSCRIPT_SPACE_ENCODE/\ }"
 
         if ! valid_test_file "$path"; then continue; fi
 
-        echo "Valid Test: $path"
-        # . "$p"
+        start_suite "$path"
+        . "$path"
+        end_suite
+        popd &>/dev/null
     done
 }
 
@@ -49,8 +55,12 @@ for p in "$@"; do
     run_paths+=("${p// /$CSCRIPT_SPACE_ENCODE}")
 done
 
+batman_banner
+
 if $plaintext; then
     run_tests | unfancy
 else
     run_tests
 fi
+
+bat_summary

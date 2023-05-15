@@ -21,12 +21,12 @@ run_single_case() {
     local status_code="$?"
 
     if [ $status_code -eq 1 ]; then
-        case_fail "$pack_type" "Unknown error during packing procedure"
+        case_fail "Unknown error during packing procedure"
         return 1
     fi
     
     if [ ! -f "$pack_output.$pack_type" ]; then
-        case_fail "$pack_type" "Missing packed file"
+        case_fail "Missing packed file"
         return 1
     fi
 
@@ -36,20 +36,20 @@ run_single_case() {
     status_code="$?"
 
     if [ $status_code -eq 1 ]; then
-        case_fail "$pack_type" "Unknown error during packing procedure"
+        case_fail "Unknown error during packing procedure"
         return 1
     elif [[ "$unpack_matches_original" == "false" ]]; then
         if [ ! -f "$output_dir/$pack_output" ]; then
-            case_fail "$pack_type" "Missing unpacked file: Expected=$output_dir/$pack_output"
+            case_fail "Missing unpacked file: Expected=$output_dir/$pack_output"
             return 1
         fi
     elif [ ! -f "$output_dir/$file" ]; then
-        case_fail "$pack_type" "Missing unpacked file: Expected=$output_dir/$file"
+        case_fail "Missing unpacked file: Expected=$output_dir/$file"
         return 1
     fi
 
     # case_fail "$pack_type" "Missing packed file"
-    case_pass "$pack_type"
+    case_pass
 
     [ -f "$file" ] && rm "$file"
     [ -d "$output_dir" ] && rm -r "$output_dir"
@@ -57,7 +57,7 @@ run_single_case() {
     return 0
 }
 
-run_single() {
+cpak_single_test() {
     local test_cases=(
         "7z;testfile;true" 
         "bz2;testfile;false"
@@ -78,12 +78,11 @@ run_single() {
         output="${tc[2]}"
         file="${tc[3]}"
 
+        case_set "$pack_type"
         run_single_case "$cmd" "$pack_type" "$output" "$file"
 
         [ -d "$output" ] && rm -r "$output"
     done
 }
 
-start_suite "cpak.sh"
-run_test "run_single" "Pack and Unpack (Single File)"
-end_suite
+run_test "cpak_single_test" "Pack and Unpack (Single File)"
