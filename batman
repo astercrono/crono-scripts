@@ -64,3 +64,5 @@ else
 fi
 
 bat_summary
+
+exit $BAT_STATUS
