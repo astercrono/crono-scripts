@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# source "$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/../lib/configure.sh"
-# source "$CSCRIPT_DIR/batman"
-
 run_good_test() {
     case_pass
 }

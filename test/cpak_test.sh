@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# source "$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/../lib/configure.sh"
-# source "$CSCRIPT_DIR/batman"
-
 TEST_DIR="/tmp"
 
 run_single_case() {
@@ -17,7 +14,6 @@ run_single_case() {
 
     # Pack
     bash $CSCRIPT_DIR/cpak p -t $pack_type -o $pack_output "$TEST_DIR/$file" &>/dev/null
-    # bash $CSCRIPT_DIR/cpak p -v -t $pack_type -o $pack_output "$TEST_DIR/$file" 
     local status_code="$?"
 
     if [ $status_code -eq 1 ]; then
@@ -32,7 +28,6 @@ run_single_case() {
 
     # Unpack
     bash $CSCRIPT_DIR/cpak u -o "$output_dir" "$pack_output.$pack_type" &>/dev/null
-    # bash $CSCRIPT_DIR/cpak u -v -o "$output_dir" "$pack_output.$pack_type"
     status_code="$?"
 
     if [ $status_code -eq 1 ]; then
@@ -48,7 +43,6 @@ run_single_case() {
         return 1
     fi
 
-    # case_fail "$pack_type" "Missing packed file"
     case_pass
 
     [ -f "$file" ] && rm "$file"
@@ -74,12 +68,11 @@ cpak_single_test() {
     for tc_def in "${test_cases[@]}"; do
         tc=(${tc_def//;/ })
         cmd="${tc[0]}"
-        pack_type="${tc[1]}"
-        output="${tc[2]}"
-        file="${tc[3]}"
+        file="${tc[1]}"
+        match_og="${tc[2]}"
 
-        case_set "$pack_type"
-        run_single_case "$cmd" "$pack_type" "$output" "$file"
+        case_set "$cmd"
+        run_single_case "$cmd" "$file" "$match_og"
 
         [ -d "$output" ] && rm -r "$output"
     done
