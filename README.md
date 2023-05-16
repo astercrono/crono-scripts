@@ -49,6 +49,10 @@ Failed Suites:
         crono-scripts/test/sample test.sh
 ```
 
+**Notes**:
+- Examples of using Batman can be found under `crono-scripts/test`. 
+    - `crono-scripts/test/sample_test.sh` is a good place to start.
+
 ## CPAK
 
 A unified front-end for most of your archival needs with an emphasis on multi-threading.
@@ -115,8 +119,6 @@ There are a variety of requirements for CPAK, most of which depend on the chosen
 
 **Notes**:
 
-- Examples of using Batman can be found under `crono-scripts/test`. 
-    - `crono-scripts/test/sample_test.sh` is a good place to start.
 - When batch extracting archives, each archive is unpacked in a sub-job.
 - When batch packing, the packing process is sequential. It does not sub-job.
     - However, the individual steps will utilize multi-threading if the underlying
