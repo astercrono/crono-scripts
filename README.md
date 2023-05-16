@@ -8,6 +8,8 @@ A collection of helpful Bash scripts that automate common tasks and streamline c
 
 `curl -s https://raw.githubusercontent.com/astercrono/crono-scripts/main/bin/cscript-install | bash`
 
+If for some reason you lost your PATH configuration, run `cscript-install`.
+
 ## Updating
 
 After `crono-scripts` is installed, you can update it at any time by running `cscript-update`. This will pull down the latest and greatest on the `main` branch.
