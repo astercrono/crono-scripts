@@ -17,7 +17,7 @@ Write automated tests for your Bash scripts!
 **Example Usage**:
 
 ```
-$ batman crono-scripts/test/sample*
+$ batman crono-scripts/test/sample_test.sh
 ______  ___ ________  ___  ___   _   _
 | ___ \/ _ \_   _|  \/  | / _ \ | \ | |
 | |_/ / /_\ \| | | .  . |/ /_\ \|  \| |
@@ -30,29 +30,18 @@ __________________________________________________
 
 Running: The Foo Test
     [PASS] Check 1
-    [FAIL] Check 2                         -- Failed because BAD. Very bad!
-    [PASS] Check 3
-
-Running: The Bar Test
-    [PASS] Check 1
     [PASS] Check 2
 
-Total Tests:  2
+Total Tests:  1
     Passed:   1
-    Failed:   1
-
-Failed Tests:
-    The Foo Test
+    Failed:   0
 
 __________________________________________________
 > Grand Summary:
 
 Total Suites: 1
-    Passed:   0
-    Failed:   1
-
-Failed Suites:
-        crono-scripts/test/sample test.sh
+    Passed:   1
+    Failed:   0
 ```
 
 **Notes**:
@@ -68,43 +57,28 @@ A unified front-end for most of your archival needs with an emphasis on multi-th
 **Example**:
 
 ```
-$ echo "hello" > test1.txt
-$ echo "world" > test2.txt
-$ cpak p -t 7z -o test-package1 test1.txt
-Begin @ 05/15/23 09:10 PM
+$ cpak p -t 7z -o test-package test*
+Begin @ 05/16/23 02:21 AM
 
-pack_type=7z
 [7z] Packing (file) test1.txt
-
-Files Processed: 1
-Duration: 0s
-
-Done @ 05/15/23 09:10 PM
-$ cpak p -t 7z -o test-package2 test2.txt
-Begin @ 05/15/23 09:10 PM
-
-pack_type=7z
 [7z] Packing (file) test2.txt
-
-Files Processed: 1
-Duration: 0s
-
-Done @ 05/15/23 09:10 PM
-$ cpak u -o test-packages *.7z
-Begin @ 05/15/23 09:11 PM
-
-test-package1.7z --> 7z
-pack_type=7z
-[7z] Unpacking (file) test-package1.7z
-pack_type=7z
-[7z] Unpacking (file) test-package2.7z
 
 Files Processed: 2
 Duration: 0s
 
-Done @ 05/15/23 09:11 PM
-$ ls test-packages/
-test-package1.7z  test-package2.7z  test1.txt  test2.txt
+Done @ 05/16/23 02:21 AM
+$ cpak u -o test-package-out *.7z
+Begin @ 05/16/23 02:21 AM
+
+test-package.7z --> 7z
+[7z] Unpacking (file) test-package.7z
+
+Files Processed: 1
+Duration: 0s
+
+Done @ 05/16/23 02:21 AM
+02:21:25 tkern@LambdaStation personal → ls test-package-out/
+test-package.7z  test1.txt  test2.txt
 ```
 
 There are a variety of requirements for CPAK, most of which depend on the chosen packaging method.
@@ -162,12 +136,10 @@ Read file paths from STDIN and print them out in plaintex, tabulated tree.
 ```
 $ find . -not -path '*/\.*' | rtree
 ./
-    batman
     README.md
     test/
         cpak_test.sh
         sample_test.sh
-    cpak
     lib/
         cpak_util.sh
         batman_banner.txt
@@ -175,8 +147,13 @@ $ find . -not -path '*/\.*' | rtree
         batlib.sh
         fancy.sh
         configure.sh
-    gpgr
-    rtree
+    bin/
+        batman
+        cscript-update
+        cpak
+        cscript-install
+        gpgr
+        rtree
     LICENSE
 ```
 
