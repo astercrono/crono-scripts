@@ -1,3 +1,5 @@
+https://github.com/astercrono/crono-scripts/actions/workflows/main.yml/badge.svg
+
 # Crono Scripts
 
 A collection of helpful Bash scripts that automate common tasks and streamline complex processes.
