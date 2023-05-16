@@ -23,6 +23,30 @@ bat_banner() {
     echo ""
 }
 
+bat_usage() {
+    fancy_print -n -s bold -c cyan "Usage: "
+    fancy_print -n -s bold "batman "
+    fancy_print -n -s underline "[options]" && echo -n " "
+    fancy_print -s underline "TARGETS"
+
+    echo ""
+
+    fancy_print -s bold -c green "Options: "
+    echo "    -p"
+    echo "        Enable plaintext mode."
+    echo "        Removes all styles and colors from output."
+    echo "    -h"
+    echo "        Print this help message"
+    echo ""
+
+    fancy_print -s underline "TARGETS"
+    echo "May be a single file or GLOB pattern of test scripts."
+    echo ""
+    fancy_print -c magenta "Test scripts must: "
+    echo "    - End with _test.sh"
+    echo "    - Make at least 1 valid use of run_test() and case_pass()"
+}
+
 # This is not a very good attempt at confirming that the file in question
 # contains the minimum number of function calls that all tests suites 
 # should have.
