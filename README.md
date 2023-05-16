@@ -25,6 +25,47 @@ Test scripts must:
     - Make at least 1 valid use of run_test() and case_pass()
 ```
 
+**Example Usage**:
+
+```
+$ batman crono-scripts/test/sample*
+______  ___ ________  ___  ___   _   _
+| ___ \/ _ \_   _|  \/  | / _ \ | \ | |
+| |_/ / /_\ \| | | .  . |/ /_\ \|  \| |
+| ___ \  _  || | | |\/| ||  _  || . ` |
+| |_/ / | | || | | |  | || | | || |\  |
+\____/\_| |_/\_/ \_|  |_/\_| |_/\_| \_/
+
+__________________________________________________
+> crono-scripts/test/sample_test.sh
+
+Running: The Foo Test
+    [PASS] Check 1
+    [FAIL] Check 2                         -- Failed because BAD. Very bad!
+    [PASS] Check 3
+
+Running: The Bar Test
+    [PASS] Check 1
+    [PASS] Check 2
+
+Total Tests:  2
+    Passed:   1
+    Failed:   1
+
+Failed Tests:
+    The Foo Test
+
+__________________________________________________
+> Grand Summary:
+
+Total Suites: 1
+    Passed:   0
+    Failed:   1
+
+Failed Suites:
+        crono-scripts/test/sample test.sh
+```
+
 ## CPAK
 
 A unified front-end for most of your archival needs with an emphasis on multi-threading.
@@ -118,6 +159,8 @@ Supported Commands:
 ## RTree
 
 Read file paths from STDIN and print them out in plaintex, tabulated tree.
+
+**Example**:
 
 ```
 $ find . -not -path '*/\.*' | rtree
