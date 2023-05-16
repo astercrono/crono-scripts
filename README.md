@@ -4,6 +4,10 @@
 
 A collection of helpful Bash scripts that automate common tasks and streamline complex processes.
 
+## Install
+
+`curl https://github.com/astercrono/crono-scripts/blob/main/bin/cscript-install | bash`
+
 ## Batman
 
 Write automated tests for your Bash scripts!
