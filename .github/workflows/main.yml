@@ -1,0 +1,11 @@
+name: Test Scripts
+run-name: ${{ github.actor }} is running tests
+on: [push]
+jobs:
+  Test-Scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Running Tests"
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - run: batman test/*
