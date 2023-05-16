@@ -53,6 +53,8 @@ Total Suites: 1
 **Notes**:
 - Examples of using Batman can be found under `crono-scripts/test`. 
     - `crono-scripts/test/sample_test.sh` is a good place to start.
+- Test scripts *must* end in `_test.sh`.
+- Test scripts *must* contain at least one usage of both `run_test <function> <description>` and `case_pass`.
 
 ## CPAK
 
