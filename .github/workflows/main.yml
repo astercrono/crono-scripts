@@ -8,4 +8,5 @@ jobs:
       - run: echo "Running Tests"
       - name: Checkout Repository
         uses: actions/checkout@v3
+      - run: PATH="$PATH:$(pwd)"
       - run: batman test/*
