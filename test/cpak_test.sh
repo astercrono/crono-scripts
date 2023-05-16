@@ -13,7 +13,8 @@ run_single_case() {
     echo "test" > "$file"
 
     # Pack
-    bash $CSCRIPT_DIR/cpak p -t $pack_type -o $pack_output "$TEST_DIR/$file" &>/dev/null
+    bash $CSCRIPT_DIR/bin/cpak p -t $pack_type -o $pack_output "$TEST_DIR/$file" &>/dev/null
+    # echo bash $CSCRIPT_DIR/bin/cpak p -t $pack_type -o $pack_output "$TEST_DIR/$file"
     local status_code="$?"
 
     if [ $status_code -eq 1 ]; then
@@ -27,7 +28,8 @@ run_single_case() {
     fi
 
     # Unpack
-    bash $CSCRIPT_DIR/cpak u -o "$output_dir" "$pack_output.$pack_type" &>/dev/null
+    bash $CSCRIPT_DIR/bin/cpak u -o "$output_dir" "$pack_output.$pack_type" &>/dev/null
+    # echo bash $CSCRIPT_DIR/bin/cpak u -o "$output_dir" "$pack_output.$pack_type"
     status_code="$?"
 
     if [ $status_code -eq 1 ]; then
