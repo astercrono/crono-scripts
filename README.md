@@ -6,7 +6,7 @@ A collection of helpful Bash scripts that automate common tasks and streamline c
 
 ## Install
 
-`curl https://github.com/astercrono/crono-scripts/blob/main/bin/cscript-install | bash`
+`curl -s https://raw.githubusercontent.com/astercrono/crono-scripts/main/bin/cscript-install | bash`
 
 ## Batman
 
