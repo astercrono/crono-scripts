@@ -8,6 +8,12 @@ A collection of helpful Bash scripts that automate common tasks and streamline c
 
 `curl -s https://raw.githubusercontent.com/astercrono/crono-scripts/main/bin/cscript-install | bash`
 
+If for some reason you lost your PATH configuration, run `cscript-install`.
+
+## Updating
+
+After `crono-scripts` is installed, you can update it at any time by running `cscript-update`. This will pull down the latest and greatest on the `main` branch.
+
 ## Batman
 
 Write automated tests for your Bash scripts!
@@ -47,6 +53,8 @@ Total Suites: 1
 **Notes**:
 - Examples of using Batman can be found under `crono-scripts/test`. 
     - `crono-scripts/test/sample_test.sh` is a good place to start.
+- Test scripts *must* end in `_test.sh`.
+- Test scripts *must* contain at least one usage of both `run_test <function> <description>` and `case_pass`.
 
 ## CPAK
 
