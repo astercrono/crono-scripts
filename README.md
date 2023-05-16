@@ -10,7 +10,7 @@ A collection of helpful Bash scripts that automate common tasks and streamline c
 
 ## Updating
 
-After `cpak` is installed, you can update it at any time by running `cscript-update`. This will pull down the latest and greatest on the `main` branch.
+After `crono-scripts` is installed, you can update it at any time by running `cscript-update`. This will pull down the latest and greatest on the `main` branch.
 
 ## Batman
 
