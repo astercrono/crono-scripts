@@ -8,6 +8,10 @@ A collection of helpful Bash scripts that automate common tasks and streamline c
 
 `curl -s https://raw.githubusercontent.com/astercrono/crono-scripts/main/bin/cscript-install | bash`
 
+## Updating
+
+After `cpak` is installed, you can update it at any time by running `cscript-update`. This will pull down the latest and greatest on the `main` branch.
+
 ## Batman
 
 Write automated tests for your Bash scripts!
