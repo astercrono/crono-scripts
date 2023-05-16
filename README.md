@@ -1,4 +1,4 @@
-https://github.com/astercrono/crono-scripts/actions/workflows/main.yml/badge.svg
+![Tests](https://github.com/astercrono/crono-scripts/actions/workflows/main.yml/badge.svg)
 
 # Crono Scripts
 
