@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+mkdir -p $HOME/.local
+
+cscript_path="$HOME/.local/crono-scripts"
+cscript_path_addition='$HOME'"/.local/crono-scripts"
+path_setup='PATH=$PATH'":$cscript_path_addition"
+
+shell_locations=("$HOME/.bashrc" "$HOME/.profile" "$HOME/.bash_profile" "$HOME/.zshrc")
+
+[ ! -d "$cscript_path" ] && git clone https://github.com/astercrono/crono-scripts.git "$cscript_path"
+
+for loc in "${shell_locations[@]}"; do
+    if [ -f "$loc" ]; then
+        if ! grep -q "$cscript_path" "$loc"; then
+            cp "$loc" "${loc}.backup.cscript"
+            echo "$path_setup" >> "$loc"
+        fi
+    fi
+done
