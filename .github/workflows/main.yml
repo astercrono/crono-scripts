@@ -8,4 +8,5 @@ jobs:
       - run: echo "Running Tests"
       - name: Checkout Repository
         uses: actions/checkout@v3
+      - run: apt install bzip2 pbzip2 rar unrar
       - run: PATH="$PATH:${{ github.workspace }}"; batman test/*
