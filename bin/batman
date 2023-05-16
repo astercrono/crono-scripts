@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
-source "$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/lib/configure.sh"
+source "$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/../lib/configure.sh"
 source "$CSCRIPT_LIB/batlib.sh"
+
+echo "HELLO=$CSCRIPT_LIB"
 
 plaintext=false
 show_usage=false
