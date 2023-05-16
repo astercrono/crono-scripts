@@ -16,7 +16,7 @@ declare -A __CPAK_CMD_MAP=(
     ["tar"]="tar_pack;tar_unpack;tar;_;Tarball Archive"
     ["tar.bz2"]="tar.bz2_pack;tar.bz2_unpack;tar;pbzip2;BZip2 Compressed Tarball"
     ["tar.gz"]="tar.gz_pack;tar.gz_unpack;tar;pigz;GZip Compressed Tarball"
-    ["xz"]="xz_pack;xz_unpack;7z;_;XZ Compression (Single File)"
+    ["xz"]="xz_pack;xz_unpack;xz;_;XZ Compression (Single File)"
     ["tar.xz"]="tar.xz_pack;tar.xz_unpack;tar;xz;XZ Compressed Tarball"
     ["rar"]="rar_pack;rar_unpack;rar;unrar;Rar Compressed Archive"
 )
