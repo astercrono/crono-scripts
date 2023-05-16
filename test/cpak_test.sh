@@ -14,7 +14,6 @@ run_single_case() {
 
     # Pack
     bash $CSCRIPT_DIR/bin/cpak p -t $pack_type -o $pack_output "$TEST_DIR/$file" &>/dev/null
-    # echo bash $CSCRIPT_DIR/bin/cpak p -t $pack_type -o $pack_output "$TEST_DIR/$file"
     local status_code="$?"
 
     if [ $status_code -eq 1 ]; then
@@ -29,7 +28,6 @@ run_single_case() {
 
     # Unpack
     bash $CSCRIPT_DIR/bin/cpak u -o "$output_dir" "$pack_output.$pack_type" &>/dev/null
-    # echo bash $CSCRIPT_DIR/bin/cpak u -o "$output_dir" "$pack_output.$pack_type"
     status_code="$?"
 
     if [ $status_code -eq 1 ]; then

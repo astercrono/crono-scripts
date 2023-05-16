@@ -47,10 +47,6 @@ bat_usage() {
     echo "    - Make at least 1 valid use of run_test() and case_pass()"
 }
 
-# This is not a very good attempt at confirming that the file in question
-# contains the minimum number of function calls that all tests suites 
-# should have.
-# TODO: Revisit this.
 bat_valid_test() {
     local path="$@"
     local status=0
@@ -98,7 +94,6 @@ start_suite() {
 
     print_divider
     fancy_print -s bold -c yellow "> $SUITE_NAME"
-    # fancy_print -s bold " $SUITE_NAME"
     echo ""
 }
 
@@ -162,10 +157,6 @@ case_fail() {
 }
 
 end_suite() {
-    # fancy_print -s bold -c magenta "Summary"
-
-    # fancy_print -s bold "    Tests:       $SUITE_TEST_COUNT"
-
     local pass_color="-c green"
     local fail_color=""
 
