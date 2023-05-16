@@ -6,24 +6,7 @@ A collection of helpful Bash scripts that automate common tasks and streamline c
 
 Write automated tests for your Bash scripts!
 
-```
-$ batman -hp
-Usage: batman [options] TARGETS
-
-Options:
-    -p
-        Enable plaintext mode.
-        Removes all styles and colors from output.
-    -h
-        Print this help message
-
-TARGETS
-May be a single file or GLOB pattern of test scripts.
-
-Test scripts must:
-    - End with _test.sh
-    - Make at least 1 valid use of run_test() and case_pass()
-```
+**Help**: `batman -h`
 
 **Example Usage**:
 
@@ -70,42 +53,48 @@ Failed Suites:
 
 A unified front-end for most of your archival needs with an emphasis on multi-threading.
 
+**Help**: `cpak h`
+
+**Example**:
+
 ```
-$ cpak h
-Usage: cpak COMMAND [options] TARGET(S)
+$ echo "hello" > test1.txt
+$ echo "world" > test2.txt
+$ cpak p -t 7z -o test-package1 test1.txt
+Begin @ 05/15/23 09:10 PM
 
-Commands:
-    h)  Print this help message
-    p)  Pack (archive and compress) files
-    u)  Unpack (decompress and unarchive) files
+pack_type=7z
+[7z] Packing (file) test1.txt
 
-Options:
-    -i
-        Run in test mode. Inspect the output.
-        No real actions are performed.
-    -s
-        Sequential mode. For unpacking only.
-        Disables subjobbing for batch processing
-    -o PATH
-        Packing: Output file basename when packing.
-        Unpacking: Directory to unpack into
-    -t TYPE
-        Specify pion type.
-        Use all applicable files within the directory.
-    -v
-        Run in verbose mode
+Files Processed: 1
+Duration: 0s
 
-Supported Types:
-    7z              7z Compressed Archive
-    bz2             BZip2 Compression (Single File)
-    gz              GZip Compression (Single File)
-    rar             Rar Compressed Archive
-    tar             Tarball Archive
-    tar.bz2         BZip2 Compressed Tarball
-    tar.gz          GZip Compressed Tarball
-    tar.xz          XZ Compressed Tarball
-    xz              XZ Compression (Single File)
-    zip             Zip Compressed Archive
+Done @ 05/15/23 09:10 PM
+$ cpak p -t 7z -o test-package2 test2.txt
+Begin @ 05/15/23 09:10 PM
+
+pack_type=7z
+[7z] Packing (file) test2.txt
+
+Files Processed: 1
+Duration: 0s
+
+Done @ 05/15/23 09:10 PM
+$ cpak u -o test-packages *.7z
+Begin @ 05/15/23 09:11 PM
+
+test-package1.7z --> 7z
+pack_type=7z
+[7z] Unpacking (file) test-package1.7z
+pack_type=7z
+[7z] Unpacking (file) test-package2.7z
+
+Files Processed: 2
+Duration: 0s
+
+Done @ 05/15/23 09:11 PM
+$ ls test-packages/
+test-package1.7z  test-package2.7z  test1.txt  test2.txt
 ```
 
 There are a variety of requirements for CPAK, most of which depend on the chosen packaging method.
