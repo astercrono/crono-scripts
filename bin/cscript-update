@@ -4,7 +4,9 @@ cscript_path="$HOME/.local/crono-scripts"
 
 if [ -d "$cscript_path" ]; then
     echo "Updating crono-scripts"
-    pushd . && cd $cscript_path && git pull && popd
+    (pushd . && cd $cscript_path) &>/dev/null
+    git pull
+    popd &>/dev/null
 else
     echo "crono-scripts is not installed!"
     echo "To install, run: curl -s https://raw.githubusercontent.com/astercrono/crono-scripts/main/bin/cscript-install | bash"
