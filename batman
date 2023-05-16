@@ -35,8 +35,8 @@ done
 bat_banner
 
 if $plaintext; then
-    bat_run_tests | unfancy
-    bat_summary | unfancy
+    (bat_run_tests; bat_summary) | unfancy
+    # bat_summary | unfancy
 else
     bat_run_tests
     bat_summary
