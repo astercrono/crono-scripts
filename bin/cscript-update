@@ -7,5 +7,5 @@ if [ -d "$cscript_path" ]; then
     pushd . && cd $cscript_path && git pull && popd
 else
     echo "crono-scripts is not installed!"
-    echo "To install, run: curl https://github.com/astercrono/crono-scripts/blob/main/bin/cscript-install | bash"
+    echo "To install, run: curl -s https://raw.githubusercontent.com/astercrono/crono-scripts/main/bin/cscript-install | bash"
 fi
