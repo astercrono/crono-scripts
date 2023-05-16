@@ -2,7 +2,7 @@ name: Tests
 run-name: ${{ github.actor }} is running tests
 on: [push]
 jobs:
-  Test-Scripts:
+  Tests:
     runs-on: ubuntu-latest
     steps:
       - run: echo "Running Tests"
