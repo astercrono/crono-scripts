@@ -9,4 +9,4 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
       - run: sudo apt install -y bzip2 pbzip2 rar unrar
-      - run: PATH="$PATH:${{ github.workspace }}/bin"; batman test/*
+      - run: PATH="$PATH:${{ github.workspace }}/bin"; make test

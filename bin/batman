@@ -6,13 +6,19 @@ source "$CSCRIPT_LIB/batlib.sh"
 plaintext=false
 show_usage=false
 
-while getopts "ph" opt; do
+while getopts "pht:v" opt; do
     case $opt in
         p)
             plaintext=true
             ;;
         h)
             show_usage=true
+            ;;
+        t)
+            TARGET_TEST="$OPTARG"
+            ;;
+        v)
+            VERBOSE=true
             ;;
         *)  ;;
     esac
@@ -28,15 +34,25 @@ if $show_usage; then
     exit 0
 fi
 
-for p in "$@"; do
-    RUN_PATHS+=("${p// /$CSCRIPT_SPACE_ENCODE}")
-done
+first_arg="$1"
+if [[ "$first_arg" == *"/**" ]]; then
+    OIFS="$IFS"
+    IFS=$(echo -en "\n\b")
+    for f in $(find $first_arg | grep "_test.sh" | sort | uniq); do
+        echo "f=$f"
+        [ -f "$f" ] && RUN_PATHS+=("${f// /$CSCRIPT_SPACE_ENCODE}")
+    done
+    IFS="$OIFS"
+else
+    for p in "$@"; do
+        [ -f "$p" ] && RUN_PATHS+=("${p// /$CSCRIPT_SPACE_ENCODE}")
+    done
+fi
 
 bat_banner
 
 if $plaintext; then
     (bat_run_tests; bat_summary) | unfancy
-    # bat_summary | unfancy
 else
     bat_run_tests
     bat_summary

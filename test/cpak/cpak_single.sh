@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
-TEST_DIR="/tmp"
-
-run_single_case() {
+cpak_single_case() {
     local pack_type="$1"
     local output_dir="$TEST_DIR/working"
     local file="$2"
@@ -72,10 +70,8 @@ cpak_single_test() {
         match_og="${tc[2]}"
 
         case_set "$cmd"
-        run_single_case "$cmd" "$file" "$match_og"
+        cpak_single_case "$cmd" "$file" "$match_og"
 
         [ -d "$output" ] && rm -r "$output"
     done
 }
-
-run_test "cpak_single_test" "Pack and Unpack (Single File)"
