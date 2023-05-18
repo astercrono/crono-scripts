@@ -11,8 +11,13 @@ cpak_single_case() {
     echo "test" > "$file"
 
     # Pack
-    bash $CSCRIPT_DIR/bin/cpak p -t $pack_type -o $pack_output "$TEST_DIR/$file" &>/dev/null
-    local status_code="$?"
+    if $VERBOSE; then
+        bash $CSCRIPT_DIR/bin/cpak p -v -t $pack_type -o $pack_output "$TEST_DIR/$file"
+        local status_code="$?"
+    else
+        bash $CSCRIPT_DIR/bin/cpak p -t $pack_type -o $pack_output "$TEST_DIR/$file" &>/dev/null
+        local status_code="$?"
+    fi
 
     if [ $status_code -eq 1 ]; then
         case_fail "Unknown error during packing procedure"
@@ -25,8 +30,13 @@ cpak_single_case() {
     fi
 
     # Unpack
-    bash $CSCRIPT_DIR/bin/cpak u -o "$output_dir" "$pack_output.$pack_type" &>/dev/null
-    status_code="$?"
+    if $VERBOSE; then
+        bash $CSCRIPT_DIR/bin/cpak u -v -o "$output_dir" "$pack_output.$pack_type"
+        status_code="$?"
+    else
+        bash $CSCRIPT_DIR/bin/cpak u -o "$output_dir" "$pack_output.$pack_type" &>/dev/null
+        status_code="$?"
+    fi
 
     if [ $status_code -eq 1 ]; then
         case_fail "Unknown error during packing procedure"

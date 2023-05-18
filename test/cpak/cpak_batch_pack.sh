@@ -65,7 +65,8 @@ cpak_batch_pack_case() {
 
     case_pass
 
-    [ -f "$file" ] && rm "$file"
+    rm $TEST_DIR/$file_base*.test
+    rm -r $TEST_DIR/$pack_output.*
     [ -d "$output_dir" ] && rm -r "$output_dir"
 
     return 0

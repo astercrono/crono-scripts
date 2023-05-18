@@ -34,21 +34,35 @@ __pack_with_cd() {
 }
 
 __unpack_with_move() {
+    local move_back=true
+    while getopts "n" opt; do
+        case $opt in
+            n)
+                move_back=false
+                ;;
+            *)  ;;
+        esac
+    done
+
     local file="$1"
     local output="$2"
     local cmd="$3"
     local new_location="."
-    local og_location="$(pwd)"
+    local og_location="$(dirname $(realpath $file))"
+    local file_name="$(basename $(realpath $file))"
 
+    echo "moving back($move_back): $output/$file_name --> $og_location"
     if [ "$output" != "" ] && [ -d "$output" ]; then
         mv "$file" "$output"
         new_location="$output"
     fi
 
-    pushd . $>/dev/null
+    pushd . &>/dev/null
     cd $new_location
     eval "$cmd"
+    echo "moving back($move_back): $output/$file_name --> $og_location"
     popd
+    [ -f "$output/$file_name" ] && echo 111 && mv "$output/$file_name" "$og_location"
 }
 
 # 7z
