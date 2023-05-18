@@ -39,7 +39,6 @@ if [[ "$first_arg" == *"/**" ]]; then
     OIFS="$IFS"
     IFS=$(echo -en "\n\b")
     for f in $(find $first_arg | grep "_test.sh" | sort | uniq); do
-        echo "f=$f"
         [ -f "$f" ] && RUN_PATHS+=("${f// /$CSCRIPT_SPACE_ENCODE}")
     done
     IFS="$OIFS"

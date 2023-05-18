@@ -53,8 +53,6 @@ bat_valid_test() {
     local path="$@"
     local status=0
     grep -qE "run_test .* .*" "$path"; status=$((status + $?))
-    # grep -qE "case_pass$" "$path"; status=$((status + $?))
-
     return $status
 }
 
