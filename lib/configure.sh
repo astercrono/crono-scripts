@@ -2,6 +2,7 @@
 
 CSCRIPT_LIB="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 CSCRIPT_DIR="$( cd $CSCRIPT_LIB/.. && pwd )"
+CSCRIPT_TEST="$( cd $CSCRIPT_DIR/test && pwd )"
 CSCRIPT_SPACE_ENCODE="@%@%"
 CSCRIPT_VAR_ENCODE_START="@@{"
 CSCRIPT_VAR_ENCODE_END="}@@"

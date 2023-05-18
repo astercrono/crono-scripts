@@ -2,6 +2,8 @@
 
 source "$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/configure.sh"
 
+TARGET_TEST=""
+VERBOSE=false
 BAT_STATUS=0
 
 SUITE_NAME=""
@@ -51,8 +53,6 @@ bat_valid_test() {
     local path="$@"
     local status=0
     grep -qE "run_test .* .*" "$path"; status=$((status + $?))
-    grep -qE "case_pass$" "$path"; status=$((status + $?))
-
     return $status
 }
 
@@ -98,13 +98,17 @@ start_suite() {
 }
 
 run_test() {
-    TEST_COUNT=$((TEST_COUNT + 1))
-    TEST_STATUS=0
-
     local test_func="$1"
     local name="$2"
 
-    fancy_print -n -s bold -c cyan "Running: "
+    if [[ "$TARGET_TEST" != "" ]] && [[ "${test_func^^}" != *"${TARGET_TEST^^}"* ]]; then
+        return 0
+    fi
+
+    TEST_COUNT=$((TEST_COUNT + 1))
+    TEST_STATUS=0
+
+    fancy_print -n -s bold -c cyan "Running[$test_func]: "
     fancy_print -s bold "$name"
 
     "$test_func"
@@ -117,6 +121,7 @@ run_test() {
     fi
 
     echo ""
+    return "$TEST_STATUS"
 }
 
 case_set() {

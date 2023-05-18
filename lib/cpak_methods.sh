@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-#TODO: If in sequential mode, decompressions should always multi-thread when available
-
 __decode_filename() {
     local encoded_file="$1"
     echo "${encoded_file//$CSCRIPT_SPACE_ENCODE/\ }"
@@ -40,13 +38,17 @@ __unpack_with_move() {
     local output="$2"
     local cmd="$3"
     local new_location="."
+    local og_location="$(pwd)"
 
     if [ "$output" != "" ] && [ -d "$output" ]; then
         mv "$file" "$output"
         new_location="$output"
     fi
 
-    pushd . && cd $new_location && eval "$cmd" && popd
+    pushd . $>/dev/null
+    cd $new_location
+    eval "$cmd"
+    popd
 }
 
 # 7z
