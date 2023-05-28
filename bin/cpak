@@ -180,7 +180,7 @@ __cpak_run() {
         return 1
     fi
 
-    [[ "$cmd" == "u" ]] && [ ! -d "$output_name" ] && mkdir -p "$output_name"
+    [[ "$cmd" == "u" ]] && [ ! -d "$output_name" ] && [[ "$output_name" != "" ]] && mkdir -p "$output_name" &>/dev/null
 
     # Default output name to first file name
     if [[ "$output_name" == "" ]]; then
