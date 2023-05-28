@@ -6,7 +6,9 @@ A collection of helpful Bash scripts that automate common tasks and streamline c
 
 ## Install
 
-`curl -s https://raw.githubusercontent.com/astercrono/crono-scripts/main/bin/cscript-install | bash`
+```
+curl -s https://raw.githubusercontent.com/astercrono/crono-scripts/main/bin/cscript-install | bash
+```
 
 If for some reason you lost your PATH configuration, run `cscript-install`.
 
